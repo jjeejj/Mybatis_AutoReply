@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+       Copyright 2009-2016 the original author or authors.
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+
+-->
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.ICommandDao">
+
+  <resultMap type="com.bean.Command" id="Command">
+    <id column="c_id" jdbcType="INTEGER" property="id"/>
+    <result column="name" jdbcType="VARCHAR" property="name"/>
+    <result column="description" jdbcType="VARCHAR" property="description"/>
+    <collection property="contents" resultMap="Content.Content"/>
+  </resultMap>
+	
+  <sql id="CommandColumns">
+  		a.id as c_id,
+    	a.name,
+    	a.description,
+  </sql>
+  
+  <select id="queryCommandList" parameterType = "com.bean.Command" resultMap="Command">
+    select 
+    	a.id as c_id,
+    	a.name as name,
+    	a.description,
+    	b.id,
+    	b.content,
+    	b.command_id
+    from command a left join content b on a.id = b.command_id  
+   	<where>
+	    <if test="name != null and name !=''">
+	    	and a.name = #{name}
+	    </if>
+	    <if test="description != null and description !=''">
+	    	<!-- and description like concat('%',#{description},'%') -->
+	    	and a.description like '%' #{description} '%'
+	    </if>
+	   <!--  <choose>
+	    	<when test="">
+	    		
+	    	</when>
+	    	<otherwise>
+	    		
+	    	</otherwise>
+	    </choose> -->
+	</where>
+  </select>
+  
+  <delete id="deleteOne" parameterType="int">
+  	delete from command where id = #{_parameter}
+  </delete>
+  
+  <delete id="deleteBatch" parameterType="java.util.List">
+  	delete from command where id in 
+  	(
+  		<foreach collection="list" item="item" separator=",">
+  			#{item}
+  		</foreach>
+  	)
+  </delete>
+  
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="com.bean.Command">
+  	insert into command(
+  		name,
+  		description,
+  	)values(
+  		#{name},
+  		#{description},
+  	)
+  </insert>
+  
+  <update id="update">
+  	update command
+  		<set>
+	  		<if test="name != null and name !=''">
+		    	and name = #{name},
+		    </if>
+		    <if test="description != null and description !=''">
+		    	and description = #{description}
+		    </if> 
+	    </set>
+	    
+  </update>
+
+</mapper>
